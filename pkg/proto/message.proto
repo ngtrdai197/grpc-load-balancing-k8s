@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/ngtrdai197/grpc-lb/pkg/pb";
+
+service MessageService {
+    rpc SendMessage (Message) returns (Message);
+}
+
+message Message {
+    string msg = 1;
+}
+
