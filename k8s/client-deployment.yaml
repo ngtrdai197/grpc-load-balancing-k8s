@@ -12,10 +12,19 @@ spec:
       labels:
         app: grpc-client
     spec:
+      volumes:
+        - name: env-configmap
+          configMap:
+            name: env-config
       containers:
         - name: grpc-client-service
-          image: seminar_mono_repos:latest
-          command: ['yarn', 'start:dev', 'user']
+          image: grpc-load-balancing-k8s:latest
+          imagePullPolicy: Never
+          command: ["/app/grpc-lb", "client", "--numOfMsg", "3000"]
+          volumeMounts:
+            - name: env-configmap
+              mountPath: /app/.env
+              subPath: env
           resources:
             limits:
               cpu: 1000m
@@ -23,18 +32,3 @@ spec:
             requests:
               cpu: 300m
               memory: 500Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: grpc-server-service-clusterip
-spec:
-  type: ClusterIP
-  clusterIP: None
-  selector:
-    app: grpc-server
-  ports:
-    - name: grpc-server
-      protocol: TCP
-      port: 3000
-      targetPort: 3000
