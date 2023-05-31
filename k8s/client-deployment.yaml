@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-client-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-client
+  template:
+    metadata:
+      labels:
+        app: grpc-client
+    spec:
+      containers:
+        - name: grpc-client-service
+          image: seminar_mono_repos:latest
+          command: ['yarn', 'start:dev', 'user']
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1500Mi
+            requests:
+              cpu: 300m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server-service-clusterip
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: grpc-server
+  ports:
+    - name: grpc-server
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

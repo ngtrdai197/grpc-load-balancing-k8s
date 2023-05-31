@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-server-deployment
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: grpc-server
+  template:
+    metadata:
+      labels:
+        app: grpc-server
+    spec:
+      volumes:
+        - name: env-configmap
+          configMap:
+            name: env-config
+      containers:
+        - name: grpc-server-service
+          image: grpc-load-balancing-k8s:latest
+          imagePullPolicy: Never
+          command: ["/app/grpc-lb", "server"]
+          volumeMounts:
+            - name: env-configmap
+              mountPath: /app/.env
+              subPath: env
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1500Mi
+            requests:
+              cpu: 300m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server-service-clusterip
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: grpc-server
+  ports:
+    - name: grpc-server
+      protocol: TCP
+      port: 80
+      targetPort: 8080
