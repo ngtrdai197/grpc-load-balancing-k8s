@@ -1,8 +1,3 @@
-include .env
-
-# Variables for binding arguments from cmd
-MIGRATION_FILE_NAME?=default_migration_file_name
-
 .PHONY:
 
 server:
