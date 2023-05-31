@@ -1,4 +1,4 @@
-# GRPC Load Balacing Kubernetes :tada:
+# GRPC Load Balancing Kubernetes :tada:
 
 ## Setup
 
