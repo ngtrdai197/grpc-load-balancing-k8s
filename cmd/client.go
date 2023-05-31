@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/ngtrdai197/grpc-lb/config"
@@ -17,17 +18,22 @@ var clientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "Serve gRPC client application",
 	Long:  `Client gRPC`,
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		c, err := config.GetConfig(validator.New())
 		if err != nil {
 			panic(fmt.Errorf("config file invalidate with error: %w", err))
 		}
-		initGrpcClient(c)
+		numbOfMsg := cmd.Flags().Lookup("numOfMsg").Value.String()
+		num, err := strconv.Atoi(numbOfMsg)
+		if err != nil {
+			log.Panicf("numOfMsg is not a number, error=%v", err)
+		}
+		initGrpcClient(c, num)
 	},
 }
 
-func initGrpcClient(c *config.Config) {
-	conn, err := grpc.Dial(c.GrpcServerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func initGrpcClient(c *config.Config, num int) {
+	conn, err := grpc.Dial(c.GrpcClientAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Fatalf("failed connect to grpc client, error=%v", err)
@@ -35,7 +41,7 @@ func initGrpcClient(c *config.Config) {
 
 	client := pb.NewMessageServiceClient(conn)
 
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= num; i++ {
 		msg, err := client.SendMessage(context.Background(), &pb.Message{
 			Msg: fmt.Sprintf("Msg sent from client %d", i),
 		})
@@ -49,4 +55,11 @@ func initGrpcClient(c *config.Config) {
 
 func init() {
 	rootCmd.AddCommand(clientCmd)
+
+	clientCmd.Flags().String("numOfMsg", "", "Number of msg you want to send")
+
+	err := clientCmd.MarkFlagRequired("numOfMsg")
+	if err != nil {
+		return
+	}
 }
